@@ -1,0 +1,29 @@
+---
+import { Picture } from "astro:assets"
+import GameLogo from "@assets/favicon.svg";
+---
+<nav class="navbar is-info" role="navigation">
+    <div class="navbar-brand">
+        <Picture alt="E" src={GameLogo} id="img" class="navbar-item" />
+        <div class="navbar-menu">
+            <div class="navbar-start">
+                <a class="navbar-item" href="/">
+                    Hem
+                </a>
+                <a class="navbar-item" href="/play">
+                    Spela
+                </a>
+                <a class="navbar-item" href="/leaderboard">
+                    Leaderboard
+                </a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<style type="scss">
+    #img {
+        height: var(--bulma-navbar-height);
+        width: var(--bulma-navbar-height);
+    }
+</style>
