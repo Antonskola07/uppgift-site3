@@ -1,0 +1,33 @@
+---
+interface Props {
+    isLoading: boolean;
+    scores: {
+        name: string;
+        score: number;
+        id: number;
+    }[];
+};
+const {isLoading, scores} = Astro.props;
+---
+<table class:list={[
+    'table',
+    'is-fullwidth',
+    'is-hoverable'
+]}>
+    <thead>
+        <tr>
+            <th>Poäng</th>
+            <th>Namn</th>
+        </tr>
+    </thead>
+    <tbody>
+        {scores.map(score => (
+            <tr class:list={[
+                    {'is-skeleton': isLoading}
+                ]}>
+                <td style={isLoading ? 'opacity: 0' : ''}>{isLoading ? 'a' : score.score}</td>
+                <td>{score.name}</td>
+            </tr>
+        ))}
+    </tbody>
+</table>

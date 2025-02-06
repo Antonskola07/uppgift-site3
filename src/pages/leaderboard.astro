@@ -1,0 +1,14 @@
+---
+import Layout from "src/layouts/Layout.astro";
+import LeaderBoardServer from "@components/server/LeaderBoardServer.astro";
+import GenericLeaderBoard from "@components/GenericLeaderBoard.astro";
+const amount = 25;
+export const prerender = true;
+---
+
+<Layout title="Leaderboard">
+    <h1 class="title has-text-centered">Leaderboard</h1>
+    <LeaderBoardServer server:defer amount={amount}>
+        <GenericLeaderBoard isLoading={true} scores={new Array(amount).fill(0).map(_ => ({id: 0, name: "", score: 0}))} slot="fallback" />
+    </LeaderBoardServer>
+</Layout>

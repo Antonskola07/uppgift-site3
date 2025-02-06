@@ -1,12 +1,126 @@
 ---
 import Layout from "src/layouts/Layout.astro";
+export const prerender = true;
 ---
 
 <Layout title="Spela">
     <h1 class="has-text-centered title">Spelet</h1>
-    <canvas></canvas>
-    <p class="has-text-centered">Laddar...</p>
+    <p class="has-text-centered" id="loadingtext">Laddar...</p>
+    <div id="game-container">
+        <iframe id="theGame" class="game-loading" width="1" height="1"></iframe>
+    </div>
+    <div class="columns is-centered mt-1">
+        <button class="button is-link" id="fullscreen-button">
+            Fullskärm
+        </button>
+	</div>
+    <div class="modal" id="submitModal">
+        <div class="modal-background"></div>
+        <div class="modal-card">
+            <header class="modal-card-head">
+                <h1 class="title" id="won-modal-text">Du vann!</h1>
+            </header>
+            <div class="modal-card-body">
+                <p class="subtitle is-5" id="score-text">Poäng: 0</p>
+                <input type="text" class="input" placeholder="Namn" id="name-input" autocomplete="off">
+                <p class="title has-text-danger is-6 mt-1 ml-1" id="modal-error"></p>
+            </div>
+            <footer class="modal-card-foot">
+                <div class="buttons">
+                  <button class="button is-success" id="submit-btn">Skicka</button>
+                  <button class="button" id="cancel-btn">Avbryt</button>
+                </div>
+            </footer>
+        </div>
+      </div>
 </Layout>
 <script>
-
+    import { actions } from "astro:actions";
+    const isLocal = location.host.startsWith("localhost");
+    if (isLocal) {
+        // fixa dumt säkerhetsfel med en ännu dummare bypass
+        document.domain = "localhost";
+    } else document.domain = "datorkonsulterna.se";
+    let theGameFrame = document.getElementById("theGame") as HTMLIFrameElement;
+    document.getElementById("fullscreen-button")!.onclick = () => {
+        theGameFrame.requestFullscreen();
+        theGameFrame.focus();
+    }
+    let isUploading = false;
+    async function doModalSubmission() {
+        if(isUploading) return;
+        isUploading = true;
+        document.getElementById("submit-btn")!.classList.add("is-loading");
+        await submitScore();
+        document.getElementById("submit-btn")!.classList.remove("is-loading");
+        document.getElementById("submitModal")!.classList.remove("is-active");
+        isUploading = false;
+        theGameFrame.contentWindow!.postMessage("window.theInstance.invokeMethod('RestartGame')", "*");
+        theGameFrame.focus();
+    }
+    document.getElementById("submit-btn")!.onclick = async () => doModalSubmission();
+    document.getElementById("name-input")!.onkeydown = e => {
+        if(e.key == "Enter") doModalSubmission();
+    }
+    document.getElementById("cancel-btn")!.onclick = () => cancelScoreUpload();
+    function fixIframeStuff() {
+        theGameFrame.width = Math.min(1000, window.innerWidth - 10).toString();
+        theGameFrame.height = Math.min(600, window.innerHeight - 10).toString();
+        theGameFrame.classList.remove("game-loading");
+        theGameFrame.focus();
+        document.getElementById("loadingtext")!.remove();
+    }
+    let lastScore = -1;
+    async function handleGameOver(msg: string) {
+        const splittedMsg = msg.split(";");
+        const wonTheGame = splittedMsg[1] == "True";
+        const bulletsHit = parseInt(splittedMsg[2]);
+        const bulletsShot = parseInt(splittedMsg[3]);
+        const score = Math.ceil((wonTheGame ? 2 : 1) * bulletsHit * (bulletsHit / bulletsShot));
+        lastScore = score;
+        document.getElementById("score-text")!.innerText = "Poäng: " + score;
+        document.getElementById("won-modal-text")!.innerText = wonTheGame ? "Du vann" : "Du förlorade...";
+        document.getElementById("submitModal")?.classList.add("is-active");
+        document.getElementById("name-input")!.focus();
+        if(document.fullscreenElement) document.exitFullscreen();
+    }
+    function cancelScoreUpload() {
+        document.getElementById("submitModal")?.classList.remove("is-active");
+        theGameFrame.contentWindow!.postMessage("window.theInstance.invokeMethod('RestartGame')", "*");
+        theGameFrame.focus();
+    }
+    async function submitScore() {
+        const name = (document.getElementById("name-input") as HTMLInputElement).value;
+        const res = await actions.createScore({name, score: lastScore});
+        console.log(res);
+        if(res.error) document.getElementById("modal-error")!.innerText = res.error.message;
+    }
+    window.addEventListener('message', e => {
+        const msg = e.data as string;
+        console.log(msg);
+        switch(msg.split(";")[0]) {
+            case "doStupidHack":
+                fixIframeStuff();
+                break;
+            case "gameover":
+                handleGameOver(msg);
+                break;
+        }
+    });
+    theGameFrame.src = isLocal ? "http://localhost:8000" : "https://cdn.datorkonsulterna.se/monogame-spel/index.html";
 </script>
+<style lang="scss">
+    iframe {
+        display: block;
+    }
+    .game-loading {
+        position: absolute;
+        top: 1px;
+    }
+    #game-container {
+        width: 100vw;
+        height: min-content;
+        display: flex;
+        justify-content: center;
+    }
+</style>
