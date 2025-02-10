@@ -16,15 +16,17 @@ const {isLoading, scores} = Astro.props;
 ]}>
     <thead>
         <tr>
+            <th>Plats</th>
             <th class="ml-5">Poäng</th>
             <th>Namn</th>
         </tr>
     </thead>
     <tbody>
-        {scores.map(score => (
+        {scores.map((score, i) => (
             <tr class:list={[
                     {'is-skeleton': isLoading}
                 ]}>
+                <td>${i}</td>
                 <td style={isLoading ? 'opacity: 0' : ''}>{isLoading ? 'a' : score.score}</td>
                 <td>{score.name}</td>
             </tr>
