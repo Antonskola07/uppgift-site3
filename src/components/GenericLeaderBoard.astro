@@ -26,7 +26,7 @@ const {isLoading, scores} = Astro.props;
             <tr class:list={[
                     {'is-skeleton': isLoading}
                 ]}>
-                <td>${i}</td>
+                <td>{i+1}</td>
                 <td style={isLoading ? 'opacity: 0' : ''}>{isLoading ? 'a' : score.score}</td>
                 <td>{score.name}</td>
             </tr>

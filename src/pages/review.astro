@@ -5,42 +5,84 @@ export const prerender = true;
 
 <Layout title='Enkät'>
 	<h1 class="title has-text-centered mt-4">Ge oss feedback</h1>
-    <h2 class="title is-size-4 ml-1">Är våra spel bra eller dåliga?</h2>
-	<div class="columns is-centered">
-        <div class="column is-2">
-            <div class="columns is-centered is-1">
-                <div class="column">
-                    <button class="button is-info column review-btn" data-reviewtype="positive">
-                        Bra
-                    </button>
-                </div>
-                <div class="column">
-                    <button class="button is-danger column review-btn" data-reviewtype="negative">
-                        Dåligt
-                    </button>
-                </div>
-            </div>
+    <h2 class="title is-size-5 ml-1 has-text-centered">Är våra spel bra eller dåliga?</h2>
+	<div id="min-egna-flex-eftersom-att-bulma-är-idiotiskt">
+        <div>
+            <button class="button is-info column review-btn" data-reviewtype="positive">
+                Bra
+            </button>
+            <button class="button is-info column review-btn" data-reviewtype="positive">
+                Bra
+            </button>
+            <button class="button is-info column review-btn" data-reviewtype="positive">
+                Bra
+            </button>
+            <button class="button is-info column review-btn" data-reviewtype="positive">
+                Bra
+            </button>
+            <button class="button is-danger column review-btn" data-reviewtype="negative">
+                Dåligt
+            </button>
         </div>
 	</div>
+    <div class="modal" id="feedbackModal">
+        <div class="modal-background"></div>
+        <div class="modal-card">
+            <header class="modal-card-head">
+                <h1 class="title">Tack för din positiva feedback!</h1>
+            </header>
+            <div class="modal-card-body">
+                <p class="subtitle is-5">Vi har mottagit din feedback och kommer att göra reklam med våran 100% positiva recensioner.</p>
+            </div>
+            <footer class="modal-card-foot">
+                <div class="buttons">
+                  <button class="button is-success" id="close-btn">Stäng</button>
+                </div>
+            </footer>
+        </div>
+      </div>
 </Layout>
 
 <style lang="scss">
-	img {
-		width: 1000px;
-		display: block;
-	}
+	#min-egna-flex-eftersom-att-bulma-är-idiotiskt > div > button {
+        display: inline-block;
+        margin: 10px;
+        padding: 10px;
+        width: 150px;
+    }
+    #min-egna-flex-eftersom-att-bulma-är-idiotiskt {
+        display: flex;
+        justify-content: center;
+    }
+    #min-egna-flex-eftersom-att-bulma-är-idiotiskt > div {
+        width: max-content;
+    }
 </style>
 <script>
     const buttons = document.querySelectorAll(".review-btn")! as NodeListOf<HTMLButtonElement>;
     function makeNegative(btn: HTMLButtonElement) {
         btn.dataset.reviewtype = "negative";
-        btn.classList.add("is-danger")
+        btn.classList.add("is-danger");
+        btn.classList.remove("is-info");
+        btn.innerText = "Dåligt";
+    }
+    function makePositive(btn: HTMLButtonElement) {
+        btn.dataset.reviewtype = "positive";
+        btn.classList.remove("is-danger");
+        btn.classList.add("is-info");
+        btn.innerText = "Bra";
     }
     buttons.forEach(btn => {
         btn.onmouseover = () => {
             if(btn.dataset.reviewtype == "negative") {
-
+                buttons.forEach(secondBtn => {
+                    makeNegative(secondBtn);
+                });
+                makePositive(btn);
             }
         }
-    })
+        btn.onclick = () => document.getElementById("feedbackModal")!.classList.add("is-active");
+    });
+    document.getElementById("close-btn")!.onclick = () => document.getElementById("feedbackModal")!.classList.remove("is-active");
+
 </script>

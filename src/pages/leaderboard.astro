@@ -9,7 +9,7 @@ export const prerender = true;
 <Layout title="Leaderboard">
     <h1 class="title has-text-centered mt-4">Leaderboard</h1>
     <div class="column is-centered ml-5 mr-5">
-        <LeaderBoardServer server:defer amount={amount} class="column">
+        <LeaderBoardServer server:defer amount={amount}>
             <GenericLeaderBoard isLoading={true} scores={new Array(amount).fill(0).map(_ => ({id: 0, name: "", score: 0}))} slot="fallback" />
         </LeaderBoardServer>
     </div>
