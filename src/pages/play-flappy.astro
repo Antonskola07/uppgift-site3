@@ -17,6 +17,7 @@ export const prerender = true;
     const bird = new Image(birdSize, birdSize);
     let spaceIsDown = false;
     let birdVelocity = 0;
+    let ticksIngame = 0;
     
     class Pipe {
         height: number;
@@ -38,17 +39,33 @@ export const prerender = true;
             ctx.fillStyle = "red";
             ctx.fillRect(this.x, this.y, this.width, this.height);
         }
+        shouldDespawn() {
+            return (this.x + this.width) < 0;
+        }
+        distanceTo(width: number, x: number) {
+            return Math.min(Math.abs(x - this.width - this.x), Math.abs(this.x - width - x));
+        }
+        distanceToPipe(pipe: Pipe) {
+            return this.distanceTo(pipe.width, pipe.x);
+        }
     }
 
-    const pipes = [] as Pipe[];
+    let pipes = [] as Pipe[];
     pipes.push(new Pipe(100, 50, 0, 100, 100));
     bird.src = "https://cdn.datorkonsulterna.se/flappy.png"
     function resetGame() {
         playerY = 10 * 1/60;
+        pipes = [];
+        ticksIngame = 0;
+    }
+    function randNum(a: number, b: number) {
+        return Math.random() * (b - a) + a;
     }
     resetGame();
     function update() {
-        birdVelocity += 9.8 * 1/60;
+        ticksIngame++;
+        const gravity = Math.min(14.5, 9.8 + ticksIngame/600);
+        birdVelocity += gravity * 1/60;
         playerY += birdVelocity;
         if(playerY > (480 - bird.height)) {
             playerY = 480 - bird.height;
@@ -58,7 +75,20 @@ export const prerender = true;
             playerY = 0;
             birdVelocity = 0;
         }
-        pipes.forEach(p => p.update())
+        pipes.forEach(p => p.update());
+        pipes = pipes.filter(p => !p.shouldDespawn());
+        const spawnChance = Math.max(0.7, 1-ticksIngame/6000);
+        if(pipes.length < 6 && Math.random() > spawnChance) {
+            const pipeXPos = randNum(500, 800);
+            const pipeWidth = randNum(30, 70);
+            const pipeHeight = randNum(30, 200);
+            const marginBetweenPipes = randNum(120, 200);
+            const maxMarginBetweenPipes = Math.max(145, 200-ticksIngame/60);
+            const pipeSpeed = Math.min(400, 200 + ticksIngame/20);
+            if(pipes.some(p => p.distanceTo(pipeWidth, pipeXPos) < maxMarginBetweenPipes)) return;
+            pipes.push(new Pipe(pipeHeight, pipeWidth, 0, pipeXPos, pipeSpeed));
+            pipes.push(new Pipe(480, pipeWidth, marginBetweenPipes + pipeHeight, pipeXPos, pipeSpeed));
+        }
     }
     function draw() {
         update();
