@@ -1,0 +1,26 @@
+---
+interface Props {
+    name: string;
+    imgUrl: string;
+    link: string;
+}
+const props = Astro.props;
+---
+<div>
+    <h2 class="title is-size-4 has-text-centered">{props.name}</h2>
+    <img src={props.imgUrl} class="min-img" alt={"Bild på " + props.name}>
+    <div class="columns is-centered mb-6 is-mobile min-column mt-0">
+        <a href={props.link}>
+            <button class="button is-link">
+                Spela nu!
+            </button>
+        </a>
+    </div>
+</div>
+
+<style lang="scss">
+    .min-img {
+        width: 100%;
+        display: block;
+    }
+</style>

@@ -11,17 +11,8 @@ export const prerender = true;
             <button class="button is-info column review-btn" data-reviewtype="positive">
                 Bra
             </button>
-            <button class="button is-info column review-btn" data-reviewtype="positive">
-                Bra
-            </button>
-            <button class="button is-info column review-btn" data-reviewtype="positive">
-                Bra
-            </button>
-            <button class="button is-info column review-btn" data-reviewtype="positive">
-                Bra
-            </button>
             <button class="button is-danger column review-btn" data-reviewtype="negative">
-                Dåligt
+                Dåliga
             </button>
         </div>
 	</div>
@@ -64,7 +55,7 @@ export const prerender = true;
         btn.dataset.reviewtype = "negative";
         btn.classList.add("is-danger");
         btn.classList.remove("is-info");
-        btn.innerText = "Dåligt";
+        btn.innerText = "Dåliga";
     }
     function makePositive(btn: HTMLButtonElement) {
         btn.dataset.reviewtype = "positive";
@@ -84,5 +75,4 @@ export const prerender = true;
         btn.onclick = () => document.getElementById("feedbackModal")!.classList.add("is-active");
     });
     document.getElementById("close-btn")!.onclick = () => document.getElementById("feedbackModal")!.classList.remove("is-active");
-
 </script>

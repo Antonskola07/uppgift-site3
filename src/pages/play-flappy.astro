@@ -1,0 +1,88 @@
+---
+import Layout from "src/layouts/Layout.astro";
+
+export const prerender = true;
+---
+<Layout title="Spela flappy">
+    <h1 class="has-text-centered title">Flappy</h1>
+    <canvas id="flappyCanvas" width="800" height="480" />
+</Layout>
+
+<script>
+    const canvasElem = document.getElementById("flappyCanvas") as HTMLCanvasElement;
+    const ctx = canvasElem.getContext("2d")!;
+    const playerX = 10;
+    let playerY: number;
+    const birdSize = 50;
+    const bird = new Image(birdSize, birdSize);
+    let spaceIsDown = false;
+    let birdVelocity = 0;
+    
+    class Pipe {
+        height: number;
+        width: number;
+        y: number;
+        x: number;
+        speed: number;
+        constructor(height: number, width: number, y: number, x: number, speed: number) {
+            this.height = height;
+            this.width = width;
+            this.y = y;
+            this.x = x;
+            this.speed = speed;
+        }
+        update() {
+            this.x -= this.speed * 1/60;
+        }
+        draw() {
+            ctx.fillStyle = "red";
+            ctx.fillRect(this.x, this.y, this.width, this.height);
+        }
+    }
+
+    const pipes = [] as Pipe[];
+    pipes.push(new Pipe(100, 50, 0, 100, 100));
+    bird.src = "https://cdn.datorkonsulterna.se/flappy.png"
+    function resetGame() {
+        playerY = 10 * 1/60;
+    }
+    resetGame();
+    function update() {
+        birdVelocity += 9.8 * 1/60;
+        playerY += birdVelocity;
+        if(playerY > (480 - bird.height)) {
+            playerY = 480 - bird.height;
+            birdVelocity = 0;
+        }
+        if(playerY < 0) {
+            playerY = 0;
+            birdVelocity = 0;
+        }
+        pipes.forEach(p => p.update())
+    }
+    function draw() {
+        update();
+        ctx.globalCompositeOperation = "destination-over";
+        ctx.clearRect(0, 0, 800, 480);
+        ctx.fillStyle = "rgb(0 0 0 / 100%)";
+        ctx.strokeStyle = "rgb(0 153 255 / 40%)";
+        ctx.save();
+        ctx.drawImage(bird, playerX, playerY, birdSize, birdSize);
+
+        pipes.forEach(p => p.draw());
+        ctx.restore();
+    }
+    document.addEventListener("keydown", e => {
+        if(e.key == " " && !spaceIsDown) {
+            if(birdVelocity < 0) birdVelocity = 0;
+            birdVelocity -= 5;
+            spaceIsDown = true;
+        }
+    });
+    document.addEventListener("keyup", e => {
+        if(e.key == " ") {
+            spaceIsDown = false;
+        }
+    });
+    setInterval(draw, 1000/60); // 60 fps
+</script>
