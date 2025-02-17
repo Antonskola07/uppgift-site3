@@ -9,7 +9,7 @@ const props = Astro.props;
 <div>
     <h2 class="title is-size-4 has-text-centered">{props.name}</h2>
     <img src={props.imgUrl} class="min-img" alt={"Bild på " + props.name}>
-    <div class="columns is-centered mb-6 is-mobile min-column mt-0">
+    <div class="columns is-centered mb-6 is-mobile min-column mt-4">
         <a href={props.link}>
             <button class="button is-link">
                 Spela nu!
@@ -22,5 +22,7 @@ const props = Astro.props;
     .min-img {
         width: 100%;
         display: block;
+        height: 400px;
+        object-fit: contain;
     }
 </style>

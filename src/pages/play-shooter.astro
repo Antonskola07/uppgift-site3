@@ -51,12 +51,14 @@ export const prerender = true;
         if(isUploading) return;
         isUploading = true;
         document.getElementById("submit-btn")!.classList.add("is-loading");
-        await submitScore();
+        const uploadSuccess = await submitScore();
         document.getElementById("submit-btn")!.classList.remove("is-loading");
-        document.getElementById("submitModal")!.classList.remove("is-active");
+        if(uploadSuccess) {
+            document.getElementById("submitModal")!.classList.remove("is-active");
+            theGameFrame.contentWindow!.postMessage("window.theInstance.invokeMethod('RestartGame')", "*");
+            theGameFrame.focus();
+        }
         isUploading = false;
-        theGameFrame.contentWindow!.postMessage("window.theInstance.invokeMethod('RestartGame')", "*");
-        theGameFrame.focus();
     }
     document.getElementById("submit-btn")!.onclick = async () => doModalSubmission();
     document.getElementById("name-input")!.onkeydown = e => {
@@ -91,9 +93,10 @@ export const prerender = true;
     }
     async function submitScore() {
         const name = (document.getElementById("name-input") as HTMLInputElement).value;
-        const res = await actions.createScore({name, score: lastScore});
+        const res = await actions.createScore({name, score: lastScore, game: "shooter"});
         console.log(res);
         if(res.error) document.getElementById("modal-error")!.innerText = res.error.message;
+        return !res.error;
     }
     window.addEventListener('message', e => {
         const msg = e.data as string;

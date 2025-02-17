@@ -75,4 +75,5 @@ export const prerender = true;
         btn.onclick = () => document.getElementById("feedbackModal")!.classList.add("is-active");
     });
     document.getElementById("close-btn")!.onclick = () => document.getElementById("feedbackModal")!.classList.remove("is-active");
+    (document.getElementsByClassName("modal-background")[0] as HTMLDivElement).onclick = () => document.getElementById("feedbackModal")!.classList.remove("is-active");
 </script>

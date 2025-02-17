@@ -1,0 +1,1 @@
+export const allowedGames = ["shooter", "flappy"] as const;

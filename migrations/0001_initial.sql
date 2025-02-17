@@ -1,0 +1,8 @@
+-- Migration number: 0001 	 2025-02-17T18:56:50.531Z
+CREATE TABLE IF NOT EXISTS "scores" (
+	"id"	INTEGER NOT NULL,
+	"name"	TEXT NOT NULL,
+	"score"	INTEGER NOT NULL,
+	PRIMARY KEY("id" AUTOINCREMENT)
+);
+CREATE INDEX IF NOT EXISTS idx_score ON scores(score DESC);

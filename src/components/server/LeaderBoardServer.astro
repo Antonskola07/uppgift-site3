@@ -1,9 +1,0 @@
----
-import GenericLeaderBoard from "@components/GenericLeaderBoard.astro";
-interface Props {
-    amount: number;
-}
-const scores = (await Astro.locals.runtime.env.DB.prepare("SELECT * FROM scores ORDER BY score DESC LIMIT ?").bind(Astro.props.amount).all()).results;
----
-
-<GenericLeaderBoard isLoading={false} scores={scores} />

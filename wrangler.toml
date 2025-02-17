@@ -6,3 +6,5 @@ compatibility_date = "2025-02-05"
 binding = "DB"
 database_name = "webb-proj3-db"
 database_id = "8527bdf2-83b4-423a-9f93-f025ab8ef523"
+migrations_table = "migrations" # Customize this value to change your applied migrations table name
+migrations_dir = "migrations" # Specify your custom migration directory

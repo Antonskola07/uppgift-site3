@@ -1,16 +1,88 @@
 ---
 import Layout from "src/layouts/Layout.astro";
-import LeaderBoardServer from "@components/server/LeaderBoardServer.astro";
-import GenericLeaderBoard from "@components/GenericLeaderBoard.astro";
-const amount = 25;
-export const prerender = true;
+import { allowedGames } from "../data/games";
+const scoreCount = 50;
+export const prerender = false;
+interface Score {
+  name: string;
+  score: number;
+  id: number;
+  game: string;
+}
+
+const requestedGame = Astro.url.searchParams.get("game");
+function generateLink(game: string): string {
+  const ourURLSearchParams = new URLSearchParams(Astro.url.search);
+  ourURLSearchParams.set("game", game);
+  return (
+    Astro.url.protocol +
+    "//" +
+    Astro.url.host +
+    Astro.url.pathname +
+    "?" +
+    ourURLSearchParams.toString()
+  );
+}
+if (
+  !requestedGame ||
+  !(allowedGames as any as string[]).includes(requestedGame)
+) {
+  return Astro.redirect(generateLink("shooter"));
+}
+
+const scores: Score[] = (
+  await Astro.locals.runtime.env.DB.prepare(
+    "SELECT * FROM scores WHERE game=? ORDER BY score DESC LIMIT ?"
+  )
+    .bind(requestedGame, scoreCount)
+    .all()
+).results;
+
+function largeFirstLetter(text: string): string {
+  const splitText = text.split("");
+  return splitText.shift()?.toUpperCase() + splitText.join("");
+}
 ---
 
 <Layout title="Leaderboard">
-    <h1 class="title has-text-centered mt-4">Leaderboard</h1>
-    <div class="column is-centered ml-5 mr-5">
-        <LeaderBoardServer server:defer amount={amount}>
-            <GenericLeaderBoard isLoading={true} scores={new Array(amount).fill(0).map(_ => ({id: 0, name: "", score: 0}))} slot="fallback" />
-        </LeaderBoardServer>
-    </div>
+  <h1 class="title has-text-centered mt-4">Leaderboard</h1>
+  <div class="tabs is-centered">
+    <ul>
+      {
+        allowedGames.map((g) => {
+          return (
+            <li
+              class:list={{
+                "is-active": requestedGame == g,
+              }}
+            >
+              <a href={generateLink(g)}>{largeFirstLetter(g)}</a>
+            </li>
+          );
+        })
+      }
+    </ul>
+  </div>
+  <div class="column is-centered ml-5 mr-5">
+    <table class:list={["table", "is-fullwidth", "is-hoverable"]}>
+      <thead>
+        <tr>
+          <th style="width: 100px">Plats</th>
+          <th class="ml-5" style="width: 100px;">Poäng</th>
+          <th>Namn</th>
+        </tr>
+      </thead>
+      <tbody>
+        {
+          scores.map((score, i) => (
+            <tr>
+              <td>#{i + 1}</td>
+              <td>{score.score}</td>
+              <td>{score.name}</td>
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+  </div>
 </Layout>

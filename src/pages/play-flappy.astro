@@ -5,10 +5,32 @@ export const prerender = true;
 ---
 <Layout title="Spela flappy">
     <h1 class="has-text-centered title">Flappy</h1>
-    <canvas id="flappyCanvas" width="800" height="480" />
+    <canvas id="flappyCanvas" width="800" height="480" /><br/>
+    <button class="button is-link ml-5" id="restartBtn">Restart</button>
+    <div class="modal" id="submitModal">
+        <div class="modal-background"></div>
+        <div class="modal-card">
+            <header class="modal-card-head">
+                <h1 class="title" id="won-modal-text">Du dog!</h1>
+            </header>
+            <div class="modal-card-body">
+                <p class="subtitle is-5" id="score-text">Poäng: 0</p>
+                <input type="text" class="input" placeholder="Namn" id="name-input" autocomplete="off">
+                <p class="title has-text-danger is-6 mt-1 ml-1" id="modal-error"></p>
+            </div>
+            <footer class="modal-card-foot">
+                <div class="buttons">
+                  <button class="button is-success" id="submit-btn">Skicka</button>
+                  <button class="button" id="cancel-btn">Avbryt</button>
+                </div>
+            </footer>
+        </div>
+      </div>
 </Layout>
 
 <script>
+    import { actions } from "astro:actions";
+
     const canvasElem = document.getElementById("flappyCanvas") as HTMLCanvasElement;
     const ctx = canvasElem.getContext("2d")!;
     const playerX = 10;
@@ -18,19 +40,22 @@ export const prerender = true;
     let spaceIsDown = false;
     let birdVelocity = 0;
     let ticksIngame = 0;
-    
+    let score = 0;
+    document.getElementById("restartBtn")!.onclick = () => resetGame();
     class Pipe {
         height: number;
         width: number;
         y: number;
         x: number;
         speed: number;
-        constructor(height: number, width: number, y: number, x: number, speed: number) {
+        shouldCountScore: boolean;
+        constructor(height: number, width: number, y: number, x: number, speed: number, shouldCountScore: boolean) {
             this.height = height;
             this.width = width;
             this.y = y;
             this.x = x;
             this.speed = speed;
+            this.shouldCountScore = shouldCountScore;
         }
         update() {
             this.x -= this.speed * 1/60;
@@ -48,22 +73,41 @@ export const prerender = true;
         distanceToPipe(pipe: Pipe) {
             return this.distanceTo(pipe.width, pipe.x);
         }
+        isColliding(): boolean {
+            // firstly ensure the x asis is right...
+            const playerMiddleX = playerX + birdSize/2;
+            if(this.x > playerMiddleX) return false;
+            if((this.x + this.width) < playerMiddleX) return false;
+            // if colliding return true
+            if(playerY < (this.y + this.height) && (playerY + birdSize) > this.y) return true;
+            // otherwise false
+            return false;
+        }
     }
 
     let pipes = [] as Pipe[];
-    pipes.push(new Pipe(100, 50, 0, 100, 100));
     bird.src = "https://cdn.datorkonsulterna.se/flappy.png"
     function resetGame() {
         playerY = 10 * 1/60;
         pipes = [];
         ticksIngame = 0;
+        birdVelocity = 0;
+        shouldRun = true;
+        canvasElem.focus();
+        score = 0;
     }
     function randNum(a: number, b: number) {
         return Math.random() * (b - a) + a;
     }
+    let shouldRun = true;
+    function gameOver() {
+        shouldRun = false;
+        handleGameOverModal();
+    }
     resetGame();
+
+    let lastFrame = performance.now();
     function update() {
-        ticksIngame++;
         const gravity = Math.min(14.5, 9.8 + ticksIngame/600);
         birdVelocity += gravity * 1/60;
         playerY += birdVelocity;
@@ -76,7 +120,12 @@ export const prerender = true;
             birdVelocity = 0;
         }
         pipes.forEach(p => p.update());
-        pipes = pipes.filter(p => !p.shouldDespawn());
+        pipes = pipes.filter(p => {
+            const shouldDespawn = p.shouldDespawn();
+            if(!shouldDespawn) return true;
+            if(p.shouldCountScore) score++;
+            return false;
+        });
         const spawnChance = Math.max(0.7, 1-ticksIngame/6000);
         if(pipes.length < 6 && Math.random() > spawnChance) {
             const pipeXPos = randNum(500, 800);
@@ -86,23 +135,43 @@ export const prerender = true;
             const maxMarginBetweenPipes = Math.max(145, 200-ticksIngame/60);
             const pipeSpeed = Math.min(400, 200 + ticksIngame/20);
             if(pipes.some(p => p.distanceTo(pipeWidth, pipeXPos) < maxMarginBetweenPipes)) return;
-            pipes.push(new Pipe(pipeHeight, pipeWidth, 0, pipeXPos, pipeSpeed));
-            pipes.push(new Pipe(480, pipeWidth, marginBetweenPipes + pipeHeight, pipeXPos, pipeSpeed));
+            pipes.push(new Pipe(pipeHeight, pipeWidth, 0, pipeXPos, pipeSpeed, true));
+            pipes.push(new Pipe(480, pipeWidth, marginBetweenPipes + pipeHeight, pipeXPos, pipeSpeed, false));
         }
+        // collision
+        if(pipes.some(p => p.isColliding())) gameOver();
     }
+    let fps = 0;
     function draw() {
-        update();
+        ticksIngame++;
+        if(shouldRun) update();
         ctx.globalCompositeOperation = "destination-over";
         ctx.clearRect(0, 0, 800, 480);
         ctx.fillStyle = "rgb(0 0 0 / 100%)";
         ctx.strokeStyle = "rgb(0 153 255 / 40%)";
+        ctx.font = "15px Monospace";
         ctx.save();
+        ctx.fillStyle = "white";
+        ctx.fillText(Math.floor(fps) + " fps", 10,20);
+        if(fps < 55) {
+            ctx.fillStyle = "orange";
+            ctx.fillText("Spelet körs för långsamt!\nDetta händer ifall att din dator är dålig", 10, 35);
+            ctx.fillText("eller din webbläsare är dålig (firefox...)", 10, 50);
+        }
         ctx.drawImage(bird, playerX, playerY, birdSize, birdSize);
 
         pipes.forEach(p => p.draw());
+        if(ticksIngame % 10 == 0) {
+            const currentTime = performance.now();
+            fps = 10000/(currentTime - lastFrame);
+            lastFrame = currentTime;
+        }
+        
         ctx.restore();
     }
     document.addEventListener("keydown", e => {
+        if(!shouldRun) return;
+        e.preventDefault(); // turn off the keyboard entirely while game is running
         if(e.key == " " && !spaceIsDown) {
             if(birdVelocity < 0) birdVelocity = 0;
             birdVelocity -= 5;
@@ -110,9 +179,49 @@ export const prerender = true;
         }
     });
     document.addEventListener("keyup", e => {
+        if(!shouldRun) return;
+        e.preventDefault();
         if(e.key == " ") {
             spaceIsDown = false;
         }
     });
     setInterval(draw, 1000/60); // 60 fps
+
+    async function handleGameOverModal() {
+        document.getElementById("score-text")!.innerText = "Poäng: " + score;
+        document.getElementById("submitModal")?.classList.add("is-active");
+        document.getElementById("name-input")!.focus();
+    }
+    async function submitScore() {
+        const name = (document.getElementById("name-input") as HTMLInputElement).value;
+        const res = await actions.createScore({name, score, game: "flappy"});
+        console.log(res);
+        if(res.error) {
+            document.getElementById("modal-error")!.innerText = res.error.message;
+            return false;
+        }
+        return true;
+    }
+    let isUploading = false;
+    async function doModalSubmission() {
+        if(isUploading) return;
+        isUploading = true;
+        document.getElementById("submit-btn")!.classList.add("is-loading");
+        const uploadSuccess = await submitScore();
+        document.getElementById("submit-btn")!.classList.remove("is-loading");
+        isUploading = false;
+        if(uploadSuccess) {
+            resetGame();
+            document.getElementById("submitModal")!.classList.remove("is-active");
+        }
+    }
+    document.getElementById("submit-btn")!.onclick = async () => doModalSubmission();
+    document.getElementById("name-input")!.onkeydown = e => {
+        if(e.key == "Enter") doModalSubmission();
+    }
+    document.getElementById("cancel-btn")!.onclick = () => cancelScoreUpload();
+    function cancelScoreUpload() {
+        document.getElementById("submitModal")?.classList.remove("is-active");
+        resetGame();
+    }
 </script>
