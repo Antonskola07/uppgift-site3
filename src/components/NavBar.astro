@@ -27,6 +27,17 @@
     }
     nav {
         background: linear-gradient(0deg, #182029 40%, #2c2e39 100%);
+        @media screen and (prefers-color-scheme: light) {
+            background: linear-gradient(0deg, rgb(230, 243, 255) 0%, #bddeff 100%);
+        }
+        .navbar-item {
+            &:hover {
+                background-color: #182029;
+                @media screen and (prefers-color-scheme: light) {
+                    background-color: #b4d9fd;
+                }
+            }
+        }
     }
 </style>
 

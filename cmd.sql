@@ -7,3 +7,4 @@ INSERT INTO scores (name, score, game) VALUES ('Albin', 4, 'shooter');
 INSERT INTO scores (name, score, game) VALUES ('Anton', 100, 'flappy');
 INSERT INTO scores (name, score, game) VALUES ('Anton', 110, 'flappy');
 INSERT INTO scores (name, score, game) VALUES ('Gäddda', 3, 'flappy');
+INSERT INTO scores (name, score, game) VALUES ('Daniel', -1, 'flappy');
