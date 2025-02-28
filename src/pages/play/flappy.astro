@@ -6,7 +6,6 @@ export const prerender = true;
 <Layout title="Spela flappy">
     <h1 class="has-text-centered title">Flappy</h1>
     <canvas id="flappyCanvas" width="800" height="480" /><br/>
-    <button class="button is-link ml-5" id="restartBtn">Restart</button>
     <div class="modal" id="submitModal">
         <div class="modal-background"></div>
         <div class="modal-card">
@@ -41,7 +40,6 @@ export const prerender = true;
     let birdVelocity = 0;
     let ticksIngame = 0;
     let score = 0;
-    document.getElementById("restartBtn")!.onclick = () => resetGame();
     class Pipe {
         height: number;
         width: number;

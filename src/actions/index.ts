@@ -5,7 +5,7 @@ import { allowedGames } from 'src/data/games';
 export const server = {
   createScore: defineAction({
     input: z.object({
-      name: z.string().max(50, "För långt namn"),
+      name: z.string().max(50, "För långt namn").min(1, "För kort namn"),
       score: z.number().int("Poängen måste vara hel").gt(0, "Poängen är för låg").lte(1_000_000, "Fuskare!"),
       game: z.enum(allowedGames)
     }),

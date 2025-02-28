@@ -35,18 +35,18 @@ export const prerender = true;
 </Layout>
 
 <style lang="scss">
-	#min-egna-flex-eftersom-att-bulma-är-idiotiskt > div > button {
-        display: inline-block;
-        margin: 10px;
-        padding: 10px;
-        width: 150px;
-    }
     #min-egna-flex-eftersom-att-bulma-är-idiotiskt {
         display: flex;
         justify-content: center;
-    }
-    #min-egna-flex-eftersom-att-bulma-är-idiotiskt > div {
-        width: max-content;
+        >div {
+            width: max-content;
+            >button {
+                display: inline-block;
+                margin: 10px;
+                padding: 10px;
+                width: 150px;
+            }
+        }
     }
 </style>
 <script>
