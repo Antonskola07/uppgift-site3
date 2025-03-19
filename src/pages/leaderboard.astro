@@ -15,9 +15,6 @@ function generateLink(game: string): string {
   const ourURLSearchParams = new URLSearchParams(Astro.url.search);
   ourURLSearchParams.set("game", game);
   return (
-    Astro.url.protocol +
-    "//" +
-    Astro.url.host +
     Astro.url.pathname +
     "?" +
     ourURLSearchParams.toString()
